@@ -187,17 +187,35 @@ async function shorten() {
   resultBox.style.display = 'none'
 
   try {
-    const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(url)}`)
-    const data = await res.json()
+    // Try shrtco.de first (CORS-friendly, no Google URL blocking)
+    let shortUrl = null
+    try {
+      const res = await fetch(`https://api.shrtco.de/v2/shorten?url=${encodeURIComponent(url)}`)
+      const data = await res.json()
+      if (data.ok) shortUrl = data.result.full_short_link
+    } catch {}
 
-    if (data.errorcode) {
-      showError(data.errormessage || 'Không thể rút gọn link này')
+    // Fallback: spoo.me
+    if (!shortUrl) {
+      try {
+        const res = await fetch('https://spoo.me/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+          body: `url=${encodeURIComponent(url)}`
+        })
+        const data = await res.json()
+        if (data.short_url) shortUrl = data.short_url
+      } catch {}
+    }
+
+    if (!shortUrl) {
+      showError('Không rút gọn được link này. Hãy thử link khác!')
       return
     }
 
-    const entry = { shortUrl: data.shorturl, originalUrl: url, createdAt: new Date().toISOString() }
+    const entry = { shortUrl, originalUrl: url, createdAt: new Date().toISOString() }
 
-    document.getElementById('resultUrl').textContent = data.shorturl
+    document.getElementById('resultUrl').textContent = shortUrl
     document.getElementById('resultOrig').textContent = '↳ ' + truncate(url)
     resultBox.style.display = 'block'
     document.getElementById('btnCopyMain').className = 'btn-copy'
