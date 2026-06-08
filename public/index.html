@@ -187,21 +187,22 @@ async function shorten() {
   resultBox.style.display = 'none'
 
   try {
-    // Generate alias: thuhuyenle-xxxx
-    const rand = Math.random().toString(36).slice(2, 7)
-    const alias = `thuhuyenle-${rand}`
-
-    // Primary: spoo.me with thuhuyenle alias
     let shortUrl = null
-    try {
-      const res = await fetch('https://spoo.me/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
-        body: `url=${encodeURIComponent(url)}&alias=${alias}`
-      })
-      const data = await res.json()
-      if (data.short_url) shortUrl = data.short_url
-    } catch {}
+
+    // Primary: spoo.me with thuhuyen- alias (retry 3x on collision)
+    for (let i = 0; i < 3 && !shortUrl; i++) {
+      const rand = Math.random().toString(36).slice(2, 8)
+      const alias = `thuhuyen-${rand}`
+      try {
+        const res = await fetch('https://spoo.me/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+          body: `url=${encodeURIComponent(url)}&alias=${alias}`
+        })
+        const data = await res.json()
+        if (data.short_url) shortUrl = data.short_url
+      } catch {}
+    }
 
     // Fallback: shrtco.de (no custom alias)
     if (!shortUrl) {
@@ -213,7 +214,7 @@ async function shorten() {
     }
 
     if (!shortUrl) {
-      showError('Không rút gọn được link này. Hãy thử lại!')
+      showError('Không rút gọn được. Kiểm tra lại link và thử lại!')
       return
     }
 
