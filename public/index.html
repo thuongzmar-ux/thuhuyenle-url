@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThuHuyenLe URL — Rút gọn link</title>
+<meta name="description" content="Công cụ rút gọn link của Thu Huyền Lê">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0f0a1e;min-height:100vh;color:#e2e8f0}
+.bg{position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse at 20% 20%,#3b1a6e 0%,transparent 50%),
+             radial-gradient(ellipse at 80% 80%,#1a3a6e 0%,transparent 50%),#0f0a1e}
+.page{position:relative;z-index:1;min-height:100vh;padding:48px 16px 80px}
+.container{max-width:680px;margin:0 auto}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:40px}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(139,92,246,.2);
+  border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:6px 16px;margin-bottom:20px}
+.badge-dot{width:7px;height:7px;background:#a78bfa;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.badge-text{font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:1px;text-transform:uppercase}
+.header h1{font-size:38px;font-weight:800;line-height:1.2;margin-bottom:10px;
+  background:linear-gradient(135deg,#fff 30%,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{color:#94a3b8;font-size:15px}
+
+/* CARD */
+.card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;margin-bottom:20px}
+
+/* FORM */
+.lbl{display:block;font-size:12px;font-weight:600;text-transform:uppercase;
+  letter-spacing:1px;color:#94a3b8;margin-bottom:10px}
+.input-row{display:flex;gap:10px}
+.url-input{flex:1;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);
+  border-radius:12px;padding:14px 16px;font-size:14px;font-family:'Inter',sans-serif;
+  color:#e2e8f0;transition:border-color .15s,box-shadow .15s}
+.url-input:focus{outline:none;border-color:#8b5cf6;box-shadow:0 0 0 4px rgba(139,92,246,.15);
+  background:rgba(255,255,255,.1)}
+.url-input::placeholder{color:#475569}
+.btn-main{background:linear-gradient(135deg,#8b5cf6,#6366f1);border:none;border-radius:12px;
+  padding:14px 24px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;
+  transition:opacity .2s,transform .1s;display:flex;align-items:center;gap:6px}
+.btn-main:hover{opacity:.9;transform:translateY(-1px)}
+.btn-main:active{transform:translateY(0)}
+.btn-main:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ERROR */
+.error{margin-top:14px;padding:12px 16px;background:rgba(239,68,68,.15);
+  border:1px solid rgba(239,68,68,.3);border-radius:10px;font-size:13px;color:#fca5a5;display:none}
+
+/* RESULT */
+.result{margin-top:20px;padding:20px;
+  background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(99,102,241,.1));
+  border:1px solid rgba(139,92,246,.3);border-radius:14px;display:none}
+.result-lbl{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.5px;color:#a78bfa;margin-bottom:10px}
+.result-row{display:flex;align-items:center;gap:10px}
+.result-url{flex:1;font-size:22px;font-weight:800;color:#c4b5fd;font-family:monospace;word-break:break-all}
+.btn-copy{background:#8b5cf6;border:none;border-radius:8px;padding:9px 18px;
+  font-size:12px;font-weight:700;color:#fff;cursor:pointer;transition:background .15s;white-space:nowrap}
+.btn-copy:hover{background:#7c3aed}
+.btn-copy.ok{background:#10b981}
+.result-orig{font-size:12px;color:#64748b;margin-top:8px;word-break:break-all}
+
+/* HISTORY */
+.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;padding:28px}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.hist-title{font-size:15px;font-weight:700;color:#e2e8f0}
+.hist-count{background:rgba(139,92,246,.2);border-radius:999px;
+  padding:4px 12px;font-size:12px;font-weight:600;color:#a78bfa}
+.hist-empty{text-align:center;padding:40px 0;color:#475569;font-size:14px}
+.hist-item{display:flex;align-items:center;gap:10px;padding:12px 0;
+  border-bottom:1px solid rgba(255,255,255,.06)}
+.hist-item:last-child{border-bottom:none}
+.hist-short{font-size:13px;font-weight:700;color:#c4b5fd;font-family:monospace;white-space:nowrap}
+.hist-info{flex:1;min-width:0}
+.hist-orig{font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-date{font-size:11px;color:#475569;margin-top:2px}
+.hist-actions{display:flex;gap:6px}
+.btn-sm{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:#94a3b8;
+  cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-sm:hover{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.btn-sm.ok{background:#10b981;color:#fff;border-color:#10b981}
+.btn-del:hover{background:rgba(239,68,68,.2);color:#fca5a5;border-color:rgba(239,68,68,.3)}
+
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:600px){
+  .header h1{font-size:28px}
+  .input-row{flex-direction:column}
+  .result-url{font-size:16px}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="page">
+  <div class="container">
+
+    <div class="header">
+      <div class="badge">
+        <div class="badge-dot"></div>
+        <span class="badge-text">ThuHuyenLe URL</span>
+      </div>
+      <h1>🔗 Rút gọn link<br>nhanh & miễn phí</h1>
+      <p>Dán link dài — nhận link ngắn để chia sẻ ngay</p>
+    </div>
+
+    <div class="card">
+      <label class="lbl">🌐 Link cần rút gọn</label>
+      <div class="input-row">
+        <input id="urlInput" class="url-input" type="url"
+          placeholder="https://docs.google.com/spreadsheets/d/..." autofocus>
+        <button id="btnShorten" class="btn-main" onclick="shorten()">
+          <div id="spinner" class="spin"></div>
+          <span id="btnText">⚡ Rút gọn</span>
+        </button>
+      </div>
+      <div id="errorBox" class="error"></div>
+      <div id="resultBox" class="result">
+        <div class="result-lbl">✅ Link đã rút gọn</div>
+        <div class="result-row">
+          <div id="resultUrl" class="result-url"></div>
+          <button id="btnCopyMain" class="btn-copy" onclick="copyMain()">📋 Copy</button>
+        </div>
+        <div id="resultOrig" class="result-orig"></div>
+      </div>
+    </div>
+
+    <div class="hist-card">
+      <div class="hist-header">
+        <div class="hist-title">📋 Lịch sử</div>
+        <div id="histCount" class="hist-count" style="display:none"></div>
+      </div>
+      <div id="histList">
+        <div class="hist-empty">Chưa có link nào — hãy rút gọn link đầu tiên! 👆</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'thuhuyenle_url_history'
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
+}
+
+function saveHistory(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 100)))
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('vi-VN', {
+    day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+  })
+}
+
+function truncate(str, n=55) {
+  return str.length > n ? str.slice(0,n)+'…' : str
+}
+
+async function shorten() {
+  const input = document.getElementById('urlInput')
+  const url = input.value.trim()
+  if (!url) return
+
+  const btn = document.getElementById('btnShorten')
+  const spinner = document.getElementById('spinner')
+  const btnText = document.getElementById('btnText')
+  const errorBox = document.getElementById('errorBox')
+  const resultBox = document.getElementById('resultBox')
+
+  btn.disabled = true
+  spinner.style.display = 'block'
+  btnText.textContent = 'Đang...'
+  errorBox.style.display = 'none'
+  resultBox.style.display = 'none'
+
+  try {
+    const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(url)}`)
+    const data = await res.json()
+
+    if (data.errorcode) {
+      showError(data.errormessage || 'Không thể rút gọn link này')
+      return
+    }
+
+    const entry = { shortUrl: data.shorturl, originalUrl: url, createdAt: new Date().toISOString() }
+
+    document.getElementById('resultUrl').textContent = data.shorturl
+    document.getElementById('resultOrig').textContent = '↳ ' + truncate(url)
+    resultBox.style.display = 'block'
+    document.getElementById('btnCopyMain').className = 'btn-copy'
+    document.getElementById('btnCopyMain').textContent = '📋 Copy'
+
+    const history = getHistory()
+    history.unshift(entry)
+    saveHistory(history)
+    renderHistory()
+    input.value = ''
+
+  } catch {
+    showError('Không kết nối được. Kiểm tra lại mạng và thử lại!')
+  } finally {
+    btn.disabled = false
+    spinner.style.display = 'none'
+    btnText.textContent = '⚡ Rút gọn'
+  }
+}
+
+function showError(msg) {
+  const errorBox = document.getElementById('errorBox')
+  errorBox.textContent = '❌ ' + msg
+  errorBox.style.display = 'block'
+}
+
+function copyMain() {
+  const url = document.getElementById('resultUrl').textContent
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('btnCopyMain')
+    btn.textContent = '✓ Đã copy'
+    btn.classList.add('ok')
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('ok') }, 2000)
+  })
+}
+
+function copyItem(url, btnId) {
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById(btnId)
+    btn.textContent = '✓'
+    btn.classList.add('ok')
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok') }, 2000)
+  })
+}
+
+function deleteItem(index) {
+  const history = getHistory()
+  history.splice(index, 1)
+  saveHistory(history)
+  renderHistory()
+}
+
+function renderHistory() {
+  const history = getHistory()
+  const list = document.getElementById('histList')
+  const count = document.getElementById('histCount')
+
+  if (history.length === 0) {
+    list.innerHTML = '<div class="hist-empty">Chưa có link nào — hãy rút gọn link đầu tiên! 👆</div>'
+    count.style.display = 'none'
+    return
+  }
+
+  count.textContent = history.length + ' link'
+  count.style.display = 'block'
+
+  list.innerHTML = history.map((item, i) => `
+    <div class="hist-item">
+      <div class="hist-short">${item.shortUrl.replace('https://','')}</div>
+      <div class="hist-info">
+        <div class="hist-orig" title="${item.originalUrl}">${item.originalUrl}</div>
+        <div class="hist-date">${formatDate(item.createdAt)}</div>
+      </div>
+      <div class="hist-actions">
+        <button id="btn-copy-${i}" class="btn-sm" onclick="copyItem('${item.shortUrl}','btn-copy-${i}')">Copy</button>
+        <button class="btn-sm btn-del" onclick="deleteItem(${i})">🗑</button>
+      </div>
+    </div>
+  `).join('')
+}
+
+// Enter key
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') shorten()
+})
+
+// Init
+renderHistory()
+</script>
+</body>
+</html>
